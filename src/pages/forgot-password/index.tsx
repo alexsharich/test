@@ -1,8 +1,5 @@
 import { getLayout } from 'src/components/Layout/BaseLayout/BaseLayout';
 import { useForm } from 'react-hook-form';
-import { useSignUpMutation } from 'api/authApi';
-import EmailSentModal from 'src/styles/styledComponents/Modal/EmailSentModal';
-import { useState } from 'react';
 import { Card } from '@/shared/ui/card';
 import { Typography } from '@/shared/ui/typography';
 import { Button } from '@/shared/ui/button';
@@ -11,54 +8,73 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ControlledTextField } from '@/shared/ui/controlled';
 import s from './ForgotPassword.module.css';
-import { TextArea } from '@/shared/ui/text-area';
 import { Captcha } from '@/shared/captcha/Captcha';
-import { useRouter } from 'next/router';
-import { en } from 'locales/en';
-import { ru } from 'locales/ru';
-import { useTranslation } from './hooks/useTranslation';
+import { useForgotPasswordMutation } from '@/api/authApi';
+import { forgotPasswordSchema } from '@/shared/utils/schemas/forgotPasswordSchema';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { GetStaticPropsContext } from 'next';
 
-export type RegisterFormType = z.infer<typeof registerSchema>;
-type RegisterFormPropsType = {
+export type ForgotPasswordFormType = z.infer<typeof forgotPasswordSchema>;
+type ForgotPasswordFormPropsType = {
   linkPath: string;
-  onSubmitHandler: (data: RegisterFormType) => void;
+  onSubmitHandler: (data: ForgotPasswordFormType) => void;
 };
+export async function getStaticProps({ locale }: GetStaticPropsContext) {
+  return {
+    props: {
+      messages: (await import(`../../../messages/${locale}/auth.json`)).default,
+    },
+  };
+}
 
 const ForgotPassword = () => {
-  /*   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [signUp] = useSignUpMutation();
-  const onSubmitHandler = (data: RegisterFormType) => console.log(data); */
-  const { control, handleSubmit } = useForm<RegisterFormType>({
-    resolver: zodResolver(registerSchema),
-  });
-  const onSubmit = handleSubmit((data) => {});
+  const [forgotPassword] = useForgotPasswordMutation();
+  const onSubmitHandler = (data: ForgotPasswordFormType) => console.log(data);
 
-  const { t } = useTranslation();
+  const { control, handleSubmit } = useForm<ForgotPasswordFormType>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
+  const onSubmit = handleSubmit((data) => {
+    console.log(data);
+    //onSubmitHandler(data); ???
+    forgotPassword(data);
+  });
+  const t = useTranslations('auth');
+
+  const [buttonSendLinkDisabled, setIsButtonSendLinkDisabled] = useState(true);
+  const changeCaptchaValue = (captchIsDone: boolean) => {
+    setIsButtonSendLinkDisabled(captchIsDone);
+  };
 
   return (
     <>
       <div className={s.container}>
         <Card className={s.card}>
-          <Typography variant={'large'}>{t.auth.forgotPasswordPage.title}</Typography>
+          <Typography variant={'large'}>{t('forgotPasswordPage.title')}</Typography>
           <form onSubmit={onSubmit}>
             <ControlledTextField
               control={control}
               name={'email'}
-              label={'Email'}
+              label={t('form.email')}
               className={s.email}
             />
             <Typography variant={'body2'} className={s.subtitle}>
-              {t.auth.forgotPasswordPage.enterYourEmailText}
+              {t('forgotPasswordPage.enterYourEmailText')}
             </Typography>
-            <Button type={'submit'} fullWidth className={s.registerBtn}>
-              {t.auth.form.button.sendLink}
+            <Button
+              type={'submit'}
+              fullWidth
+              className={s.registerBtn}
+              disabled={buttonSendLinkDisabled}
+            >
+              {t('button.sendLink')}
             </Button>
           </form>
           <Button as={'a'} variant={'link'} className={s.link} href={'/sign-in'}>
-            {t.auth.form.button.backToSignIn}
+            {t('button.backToSignIn')}
           </Button>
-          <Captcha />
-          {/* TODO */}
+          <Captcha changeCaptchaValue={changeCaptchaValue} />
         </Card>
       </div>
     </>
