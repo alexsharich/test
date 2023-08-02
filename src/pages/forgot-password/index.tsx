@@ -3,17 +3,17 @@ import { useForm } from 'react-hook-form';
 import { Card } from '@/shared/ui/card';
 import { Typography } from '@/shared/ui/typography';
 import { Button } from '@/shared/ui/button';
-import { registerSchema } from '@/shared/utils/schemas/register-schema';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ControlledTextField } from '@/shared/ui/controlled';
 import s from './ForgotPassword.module.css';
 import { Captcha } from '@/shared/captcha/Captcha';
-import { useForgotPasswordMutation } from '@/api/authApi';
+import { usePasswordRecoveryMutation } from '@/api/authApi';
 import { forgotPasswordSchema } from '@/shared/utils/schemas/forgotPasswordSchema';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { GetStaticPropsContext } from 'next';
+import { TextArea } from '@/shared/ui/text-area';
 
 export type ForgotPasswordFormType = z.infer<typeof forgotPasswordSchema>;
 type ForgotPasswordFormPropsType = {
@@ -29,15 +29,13 @@ export async function getStaticProps({ locale }: GetStaticPropsContext) {
 }
 
 const ForgotPassword = () => {
-  const [forgotPassword] = useForgotPasswordMutation();
-  const onSubmitHandler = (data: ForgotPasswordFormType) => console.log(data);
+  const [forgotPassword] = usePasswordRecoveryMutation();
 
   const { control, handleSubmit } = useForm<ForgotPasswordFormType>({
     resolver: zodResolver(forgotPasswordSchema),
   });
   const onSubmit = handleSubmit((data) => {
     console.log(data);
-    //onSubmitHandler(data); ???
     forgotPassword(data);
   });
   const t = useTranslations('auth');
@@ -66,7 +64,7 @@ const ForgotPassword = () => {
               type={'submit'}
               fullWidth
               className={s.registerBtn}
-              disabled={buttonSendLinkDisabled}
+              //disabled={buttonSendLinkDisabled}
             >
               {t('button.sendLink')}
             </Button>
