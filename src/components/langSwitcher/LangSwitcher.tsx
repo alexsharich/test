@@ -11,7 +11,7 @@ const languages: LanguageType = {
     'English': 'en'
 }
 
-export const LangSwitcher = () => {
+const LangSwitcher = () => {
     const {locale, push, pathname, query, asPath, locales} = useRouter();
 
     const changeLangHandler = (item: string) => {
@@ -19,11 +19,15 @@ export const LangSwitcher = () => {
     };
 
     const items = Object.keys(languages).map(lang => ({title: lang, icon: ''}))
+    const curItem = items.filter(item=>languages[item.title]===locale)[0]
+
 
     return (
         <Select
+            defaultValue={curItem}
             items={items}
             onValueChange={changeLangHandler}
         />
     );
 };
+export default LangSwitcher;

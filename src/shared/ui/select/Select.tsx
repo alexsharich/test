@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useState} from 'react';
 import * as SelectComponent from '@radix-ui/react-select';
 import s from 'src/shared/ui/select/Select.module.scss';
 import {CheckIcon} from '@radix-ui/react-icons';
@@ -14,11 +14,20 @@ type SelectPropsType = {
     selectLabel?: string
     placeHolder?: string
     items: ItemType[]
+    defaultValue?: ItemType
     onValueChange: (item: string) => void
     disabled?: boolean
 }
 
-const Select = ({selectLabel, placeHolder, items, onValueChange, disabled = false}: SelectPropsType) => {
+const Select = ({selectLabel, placeHolder, items, onValueChange, disabled = false, defaultValue}: SelectPropsType) => {
+
+        const [value, setValue] = useState('')
+        const curValueIcon = value ? items.filter((item => item.title === value))[0].icon : defaultValue?.icon
+
+        const onValueChangeHandler = (e:string) => {
+            onValueChange(e)
+            setValue(e)
+        }
 
         const renderingItems = items.map(item => (
             <SelectComponent.Item key={item.title.toLowerCase()} className={s.SelectItem} value={item.title}>
@@ -38,9 +47,10 @@ const Select = ({selectLabel, placeHolder, items, onValueChange, disabled = fals
                     <Label className={s.label} htmlFor={selectLabel.toLowerCase()}>
                         {selectLabel}
                     </Label>}
-                <SelectComponent.Root disabled={disabled} onValueChange={(e) => onValueChange(e)}>
+                <SelectComponent.Root disabled={disabled} onValueChange={onValueChangeHandler}>
                     <SelectComponent.Trigger id={selectLabel ? selectLabel.toLowerCase() : ''} className={s.SelectTrigger}>
-                        <SelectComponent.Value placeholder={placeHolder ? placeHolder : items[0].title}/>
+                        {curValueIcon}
+                        <SelectComponent.Value placeholder={placeHolder ? placeHolder : defaultValue?.title}/>
                         <SelectComponent.Icon className={s.SelectIcon}>
                             <ChevronDownIcon/>
                         </SelectComponent.Icon>
