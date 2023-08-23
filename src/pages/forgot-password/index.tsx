@@ -7,14 +7,13 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ControlledTextField } from '@/shared/ui/controlled';
 import s from './ForgotPassword.module.css';
-import { Captcha } from '@/shared/captcha/Captcha';
 import { usePasswordRecoveryMutation } from '@/api/authApi';
 import { forgotPasswordSchema } from '@/shared/utils/schemas/forgotPasswordSchema';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { GetStaticPropsContext } from 'next';
-import { TextArea } from '@/shared/ui/text-area';
 import { useRouter } from 'next/router';
+import {ReCaptcha, ReCaptchaProvider, useReCaptcha} from "next-recaptcha-v3";
 
 
 export type ForgotPasswordFormType = z.infer<typeof forgotPasswordSchema>;
@@ -31,27 +30,30 @@ const ForgotPassword = () => {
   const { push, pathname } = useRouter();
   const [forgotPassword, { status }] = usePasswordRecoveryMutation();
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState<string|null>(null);
 
   const t = useTranslations('auth');
+
+  const {executeRecaptcha} = useReCaptcha()
+
 
   const { control, handleSubmit } = useForm<ForgotPasswordFormType>({
     resolver: zodResolver(forgotPasswordSchema),
   });
-  const onSubmit = handleSubmit((data) => {
-    forgotPassword(data);
+  const onSubmit = handleSubmit (async (data) => {
+    const captcha = await executeRecaptcha('password_recovery')
+    forgotPassword({email:data.email,recaptchaValue:captcha as string});
     setEmail(data.email);
   });
 
-  const [buttonSendLinkDisabled, setIsButtonSendLinkDisabled] = useState(true);
-  const changeCaptchaValue = (captchIsDone: boolean) => {
-    setIsButtonSendLinkDisabled(captchIsDone);
-  };
+
+
   useEffect(() => {
     status === 'fulfilled' && push(pathname + '/link-has-been-sent');
   }, [status]);
 
   return (
-    <>
+      <ReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_API_KEY}>
       <div className={s.container}>
         <Card className={s.card}>
           <Typography variant={'large'}>{t('forgotPasswordPage.title')}</Typography>
@@ -62,14 +64,13 @@ const ForgotPassword = () => {
               label={t('form.email')}
               className={s.email}
             />
-            <Typography variant={'body2'} className={s.subtitle}>
+            <Typography variant={'regular14'} className={s.subtitle}>
               {t('forgotPasswordPage.enterYourEmailText')}
             </Typography>
             <Button
               type={'submit'}
               fullWidth
               className={s.registerBtn}
-              //disabled={buttonSendLinkDisabled}
             >
               {t('button.sendLink')}
             </Button>
@@ -77,10 +78,10 @@ const ForgotPassword = () => {
           <Button as={'a'} variant={'link'} className={s.link} href={'/sign-in'}>
             {t('button.backToSignIn')}
           </Button>
-          <Captcha changeCaptchaValue={changeCaptchaValue} />
         </Card>
+        <ReCaptcha onValidate={setToken} action="password_recovery"  />
       </div>
-    </>
+      </ReCaptchaProvider>
   );
 };
 
