@@ -1,22 +1,23 @@
-import {createSlice} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface stateType {
-    isInit:boolean;
+    isInit: boolean;
+    accessToken: string;
 }
 
-const initialState:stateType = {
-    isInit:false,
-
-}
+const initialState: stateType = {
+    isInit: false,
+    accessToken: ''
+};
 export const authSlice = createSlice({
-    name:'auth',
+    name: 'auth',
     initialState,
-    reducers:{
-        setAuth:(state, action)=>{
-         state.isInit = action.payload
+    reducers: {
+        setAuth: (state, action: PayloadAction<boolean>) => {
+            state.isInit = action.payload;
         }
     }
-})
+});
 
-export const {actions:authAction} = authSlice
-export const {reducer:authReducer} = authSlice
+export const { actions: authAction } = authSlice;
+export const { reducer: authReducer } = authSlice;
