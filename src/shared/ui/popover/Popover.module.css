@@ -1,18 +1,21 @@
 .PopoverContent {
-    width: 260px;
-    padding: 20px;
+    /* width: 260px; */
+    padding: 12px;
     background-color: var(--color-dark-500);
-    border: 1px solid var(--color-dark-300);
+    border: 1px solid var(--color-dark-100);
     border-radius: 4px;
     box-shadow: hsl(206deg 22% 7% / .35) 0 10px 38px -10px, hsl(215deg 11% 70% / .2) 0 10px 20px -15px;
     animation-duration: 400ms;
     animation-timing-function: cubic-bezier(.16, 1, .3, 1);
-    will-change: transform, opacity
+    will-change: transform, opacity;
 }
 
 .PopoverContent:focus {
-    box-shadow: hsl(206deg 22% 7% / .35) 0 10px 38px -10px, hsl(206deg 22% 7% / .2) 0 10px 20px -15px,
-    0 0 0 2px var(--color-primary-700)
+    box-shadow: hsl(206deg 22% 7% / .35) 0 10px 38px -10px, hsl(206deg 22% 7% / .2) 0 10px 20px -15px
+}
+
+.PopoverContent:focus-visible {
+    outline: none
 }
 
 .PopoverContent[data-state='open'][data-side='top'] {
@@ -34,7 +37,6 @@
 .PopoverArrow {
     fill: var(--color-light-100)
 }
-
 .PopoverClose {
     position: absolute;
     top: 5px;
@@ -46,7 +48,7 @@
     height: 25px;
     color: var(--color-primary-900);
     font-family: inherit;
-    border-radius: 100%
+    border-radius: 100%;
 }
 
 .PopoverClose:hover {

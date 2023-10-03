@@ -1,20 +1,24 @@
+import { useRouter } from 'next/router';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { useCreatePostMutation } from '@/api/authApi';
+import { useCreatePostMutation, useGetUserDataQuery } from '@/api/api';
 import { ImageEditor } from '@/components/ImageEditor/ImageEditor';
 import { useAppSelector } from '@/redux/store';
-import { addImage } from '@/redux/store/imageSlice/imageSlice';
+import { addImage, resetImageState } from '@/redux/store/imageSlice/imageSlice';
 import { Button } from '@/shared/ui/button';
 import { ImageUploader } from '@/shared/ui/image-uploader/ImageUploader';
 import ConfirmCloseModal from '@/shared/ui/modal/ConfirmCloseModal';
 import { Modal } from '@/shared/ui/modal/Modal';
 import { ImagePlaceholder } from '@/shared/ui/placeholder/placeholder';
 import { Typography } from '@/shared/ui/typography';
-import { parseImageBlob } from '@/shared/utils/parseImageBlob';
+import { canvasCreator } from '@/shared/utils/canvas/canvasCreator';
+import { canvasToBlob } from '@/shared/utils/canvas/canvasToBlob';
+import { parseImageBlob } from '@/shared/utils/canvas/parseImageBlob';
+import { getUniqFileName } from '@/shared/utils/generateFileName/generateFileName';
 
 import s from './CreatePostModal.module.scss';
-
 export type StepType = 'Cropping' | 'Filters' | 'Publication';
 
 type Props = {
@@ -26,26 +30,47 @@ type Props = {
 
 const CreatePostModal = (props: Props) => {
     const dispatch = useDispatch();
-    const [preview, setPreview] = useState<string>(''); // Фото-превью
+    const [preview, setPreview] = useState<string>('');
     const [editModal, setEditModal] = useState(false);
     const [error, setError] = useState('');
     const [confirmCloseModal, setConfirmCloseModal] = useState(false);
     const [currentStep, setCurrentStep] = useState<StepType>('Cropping');
+    const router = useRouter();
+    const t = useTranslations('');
 
-    const { title, images, description } = useAppSelector(state => state.images);
+    const tModalTitles = {
+        Publication: t('post.publication'),
+        Cropping: t('post.cropping'),
+        Filters: t('post.filters')
+    };
+
+    const { images, description } = useAppSelector(state => state.images);
     const currentImage = useAppSelector(state => state.images.currentImage);
 
     const [publishPost] = useCreatePostMutation();
+    const { data: userData } = useGetUserDataQuery();
 
-    const nextBtnHandler = () => {
+    const nextBtnHandler = async () => {
         if (currentStep === 'Cropping') setCurrentStep('Filters');
         else if (currentStep === 'Filters') setCurrentStep('Publication');
         else if (currentStep === 'Publication') {
-            console.log('publish');
-            publishPost({ title, files: images as any, description });
-            // setEditModal(false)
-            // props.modalHandler(false)
-            // setCurrentStep('Cropping')
+            const imagesBlob = [];
+            for (const image of images) {
+                const canvas = await canvasCreator(image.src, image.filters, image.crop, currentStep);
+                const blob = await canvasToBlob(canvas, image.type);
+                /* FIXME: temp solution must be realized on backend  */
+                const uniqFileName = getUniqFileName(image.name);
+                imagesBlob.push({ blob, filename: uniqFileName });
+            }
+            publishPost({ files: imagesBlob, description })
+                .unwrap()
+                .then(() => {
+                    setEditModal(false);
+                    props.modalHandler(false);
+                    setCurrentStep('Cropping');
+                    dispatch(resetImageState());
+                    router.push('/home');
+                });
         }
     };
     const prevBtnHandler = () => {
@@ -53,16 +78,18 @@ const CreatePostModal = (props: Props) => {
         else if (currentStep === 'Publication') setCurrentStep('Filters');
         else if (currentStep === 'Cropping') setConfirmCloseModal(true);
     };
+    const tPublish = t('button.publish');
+    const tNext = t('button.next');
 
     const nextButton = (
         <Button className={s.btn} variant={'outlined'} onClick={nextBtnHandler}>
-            {currentStep === 'Publication' ? 'Publish' : 'Next'}
+            {currentStep === 'Publication' ? tPublish : tNext}
         </Button>
     );
 
     const previousButton = (
         <Button className={s.btn} variant={'outlined'} onClick={prevBtnHandler}>
-            Prev
+            {t('button.prev')}
         </Button>
     );
 
@@ -71,6 +98,7 @@ const CreatePostModal = (props: Props) => {
         setEditModal(false);
         props.modalHandler(false);
         setCurrentStep('Cropping');
+        dispatch(resetImageState());
     };
     const saveDraftHandler = () => {
         setConfirmCloseModal(false);
@@ -96,17 +124,17 @@ const CreatePostModal = (props: Props) => {
     return (
         <Modal
             className={s.container}
-            title="Add photo"
+            title={t('modal.addPhotoModalTitle')}
             open={props.open}
             customButtonsBlock={
                 <>
-                    <ImageUploader label="Select from Computer" onImageChangeHandler={onImageChangeHandler} />
+                    <ImageUploader label={t('button.selectFromComputer')} onImageChangeHandler={onImageChangeHandler} />
                     <Button
                         onClick={() => {
                             if (preview) setEditModal(true);
                             else setError('Upload image first');
                         }}>
-                        Next
+                        {t('button.next')}
                     </Button>
                 </>
             }
@@ -117,7 +145,7 @@ const CreatePostModal = (props: Props) => {
             </div>
 
             <Modal
-                title={currentStep}
+                title={tModalTitles[currentStep]}
                 open={editModal}
                 modalHandler={setEditModal}
                 nextStepBtn={nextButton}
@@ -131,14 +159,12 @@ const CreatePostModal = (props: Props) => {
                     modalHandler={setConfirmCloseModal}
                     customButtonsBlock={
                         <>
-                            <Button onClick={discardHandler}> Discard </Button>
-                            <Button onClick={saveDraftHandler}> Save draft </Button>
+                            <Button onClick={discardHandler}> {t('button.discard')} </Button>
+                            <Button onClick={saveDraftHandler}> {t('button.saveDraft')} </Button>
                         </>
                     }>
                     <Typography variant={'regular16'} as={'div'} style={{ maxWidth: '333px' }}>
-                        Do you really want to close the creation of a publication?
-                        <br />
-                        If you close everything will be deleted
+                        {t('modal.closeModalText')}
                     </Typography>
                 </ConfirmCloseModal>
             </Modal>

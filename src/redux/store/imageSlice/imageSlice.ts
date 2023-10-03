@@ -11,7 +11,6 @@ const initialState: ImageStoreStateType = {
         src: '',
         hash: ''
     },
-    title: '',
     description: ''
 };
 
@@ -66,11 +65,10 @@ export const imageSlice = createSlice({
                 return image;
             });
         },
-
-        setDescription: (state, action: PayloadAction<{ title: string; description: string }>) => {
-            state.title = action.payload.title;
+        setDescription: (state, action: PayloadAction<{ description: string }>) => {
             state.description = action.payload.description;
-        }
+        },
+        resetImageState: () => initialState
     },
 
     extraReducers: builder => {
@@ -89,8 +87,15 @@ export const imageSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 
-export const { addImage, removeImage, addFilterToCurrentImage, setCurrentImage, setDescription, setCrop } =
-    imageSlice.actions;
+export const {
+    addImage,
+    removeImage,
+    addFilterToCurrentImage,
+    setCurrentImage,
+    setDescription,
+    setCrop,
+    resetImageState
+} = imageSlice.actions;
 
 export const { reducer: imageReducer } = imageSlice;
 

@@ -1,14 +1,19 @@
 import { z } from 'zod';
 
 export const editProfileSchema = z.object({
-    userName: z
-        .string()
+    firstName: z
+        .string({ required_error: 'Enter your first name' })
         .trim()
-        .min(6, 'Username must be at least 6 characters long')
-        .max(30, "Username can't be longer than 30 characters"),
-    firstName: z.string().trim().nonempty('Enter your first name'),
-    lastName: z.string().trim().nonempty('Enter your last name'),
-    birthdayDate: z.date({ required_error: 'Please select your birthday' }),
-    city: z.string().trim().nonempty('Enter your city'),
-    aboutMe: z.string().trim().max(500, 'error.descriptionValueMax')
+        .min(1, 'error.firstNameMin')
+        .max(50, 'error.firstNameMax')
+        .refine(firstname => /^[\p{L}]+$/u.test(firstname), 'error.invalidUsername'),
+    lastName: z
+        .string({ required_error: 'Enter your last name' })
+        .trim()
+        .min(1, 'error.lastNameMin')
+        .max(50, 'error.lastNameMax')
+        .refine(lastname => /^[\p{L}]+$/u.test(lastname), 'error.invalidUsername'),
+    birthdayDate: z.date().nullish(),
+    city: z.string().trim().optional(),
+    aboutMe: z.string().trim().max(200, 'error.aboutMeValueMax').optional()
 });

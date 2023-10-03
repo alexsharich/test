@@ -65,6 +65,10 @@
   background-color: rgb(var(--color-dark-500) .8);
   border-radius: 2px;
 
+  li {
+    position: relative;
+  }
+
   .icon__close {
     position: relative;
     display: flex;
@@ -98,7 +102,7 @@
   flex:0 124px;
   height: 82px;
 
-  img {
+  .img {
     width: 124px;
     max-width: 124px;
     height: 100%;

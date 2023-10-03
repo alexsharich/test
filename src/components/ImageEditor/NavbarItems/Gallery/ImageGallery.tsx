@@ -2,7 +2,7 @@ import s from '@/components/ImageEditor/NavbarItems/Gallery/ImageGallery.module.
 import { useAppDispatch, useAppSelector } from '@/redux/store';
 import { addImage, removeImage, setCurrentImage } from '@/redux/store/imageSlice/imageSlice';
 import { ImageUploader } from '@/shared/ui/image-uploader/ImageUploader';
-import { parseImageBlob } from '@/shared/utils/parseImageBlob';
+import { parseImageBlob } from '@/shared/utils/canvas/parseImageBlob';
 
 export const ImageGallery = () => {
     const dispatch = useAppDispatch();
@@ -23,14 +23,15 @@ export const ImageGallery = () => {
     };
 
     const imagePreview = images.map(({ originalSRC }) => (
-        <li key={originalSRC} className={s.image}>
+        <li key={originalSRC}>
             <div
+                className={s.image}
                 role="button"
                 aria-hidden
                 onClick={() => {
                     dispatch(setCurrentImage(originalSRC));
                 }}>
-                <img src={originalSRC} alt="" />
+                <img src={originalSRC} alt="" className={s.img} />
             </div>
 
             <button className={s.image_close} onClick={removeImageFromGallery} value={originalSRC}>

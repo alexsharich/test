@@ -1,15 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GetStaticPropsContext } from 'next';
+import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { useResetPasswordMutation } from '@/api/authApiSlice';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { ControlledTextField } from '@/shared/ui/controlled';
 import { Typography } from '@/shared/ui/typography';
 import { createNewPasswordSchema } from '@/shared/utils/schemas/createNewPasswordSchema';
-import { useResetPasswordMutation } from 'src/api/authApi';
 import { getLayout } from 'src/components/Layout/BaseLayout/BaseLayout';
 import s from 'src/pages/forgot-password/create-new-password/CreateNewPassword.module.scss';
 
@@ -23,11 +24,12 @@ export async function getStaticProps({ locale }: GetStaticPropsContext) {
     };
 }
 
-const SignUp = () => {
+const CreateNewPassword = () => {
+    const router = useRouter();
     const [setNewPassword] = useResetPasswordMutation();
     const { control, handleSubmit } = useForm<RegisterFormType>({ resolver: zodResolver(createNewPasswordSchema) });
     const onSubmit = handleSubmit(data => {
-        setNewPassword({ newPassword: data.password, recoveryCode: '' });
+        setNewPassword({ newPassword: data.password, recoveryCode: router.query.recoveryCode as string });
     });
     const t = useTranslations('auth');
 
@@ -63,5 +65,5 @@ const SignUp = () => {
     );
 };
 
-SignUp.getLayout = getLayout;
-export default SignUp;
+CreateNewPassword.getLayout = getLayout;
+export default CreateNewPassword;

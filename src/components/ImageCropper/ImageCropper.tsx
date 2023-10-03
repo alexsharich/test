@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { centerCrop, Crop, makeAspectCrop, ReactCrop } from 'react-image-crop';
 import 'react-image-crop/src/ReactCrop.scss';
 
@@ -10,16 +10,17 @@ type PropsType = {
     children?: ReactNode;
     src: string;
     isCircular?: boolean;
-    // eslint-disable-next-line no-unused-vars
     onCrop?: (crop: Crop) => void;
+    destWidth: number;
+    destHeight: number;
 };
 
 const centerAspectCrop = (mediaWidth: number, mediaHeight: number, aspect: number = 1) =>
     centerCrop(
         makeAspectCrop(
             {
-                unit: 'px',
-                width: mediaWidth
+                unit: '%',
+                width: 100
             },
             aspect,
             mediaWidth,
@@ -48,8 +49,8 @@ const ImageCropper = ({ isCircular = false, ...props }: PropsType) => {
     const debouncedCrop = useDebounce(completedCrop, 500);
 
     useEffect(() => {
-        if (props.src) {
-            const newCrop = centerAspectCrop(curCrop.width, curCrop.height, isCircular ? 1 : cropRatio);
+        if (props.src && cropRatio) {
+            const newCrop = centerAspectCrop(props.destWidth, props.destHeight, isCircular ? 1 : cropRatio);
             setCompletedCrop(newCrop);
             setCurCrop(newCrop);
         }
@@ -67,19 +68,18 @@ const ImageCropper = ({ isCircular = false, ...props }: PropsType) => {
                   );
         }
     }, [debouncedCrop]);
-
     return (
         <ReactCrop
             circularCrop={isCircular}
             aspect={isCircular ? 1 : cropRatio}
             crop={curCrop}
-            onChange={c => {
-                setCurCrop(c);
+            onChange={(crop, percentageCrop) => {
+                setCurCrop(percentageCrop);
             }}
-            onComplete={c => {
-                setCompletedCrop(c);
+            onComplete={(crop, percentageCrop) => {
+                setCompletedCrop(percentageCrop);
             }}>
-            {props.children}
+            <div>{props.children}</div>
         </ReactCrop>
     );
 };

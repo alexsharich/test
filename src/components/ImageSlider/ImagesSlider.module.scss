@@ -1,11 +1,9 @@
 .slider {
   position: relative;
-
+  width: 100%;
 
   &__list {
     display: flex;
-
-    // width: 560px;
     gap: 2px;
     align-items: center;
     overflow: hidden;
@@ -27,7 +25,7 @@
     position: absolute;
     bottom: 30px;
     left: 50%;
-    z-index: 200;
+    z-index: 20;
     display: inline-flex;
     gap: 12px;
     align-items: center;
