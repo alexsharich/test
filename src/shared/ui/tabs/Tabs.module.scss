@@ -1,15 +1,18 @@
+@import '/src/styles/variables/mixins';
+
 .TabsRoot {
     display: flex;
     flex-direction: column;
-    width: 726px;
-
-    /* box-shadow: 0 2px 10px var(--color-dark-500) */
+    width: 100%
 }
 
 .TabsList {
     display: flex;
     flex-shrink: 0;
-    border-bottom: 1px solid var(--color-dark-100)
+    border-bottom: 1px solid var(--color-dark-100);
+    overflow: auto;
+    white-space: nowrap;
+    padding: 10px 5px;
 }
 
 .TabsTrigger {
@@ -101,3 +104,8 @@
     line-height: 1
 }
 
+@include mobile {
+    .TabsList {
+        overflow: scroll
+    }
+}

@@ -23,3 +23,34 @@
   font-size: $fs;
   line-height: $lh
 }
+
+$breakpoint-mobile: 324px;
+$breakpoint-tablet: 768px;
+
+// Миксины для media queries
+@mixin mobile {
+  @media (max-width: $breakpoint-mobile) {
+    @content
+  }
+}
+
+@mixin tablet {
+  @media (max-width: $breakpoint-tablet) {
+    @content
+  }
+}
+
+
+$breakpoints: (
+  mobile: 575.98px,
+  tablet: 767.98px,
+  laptop: 991.98px,
+  desktop: 1199.98px,
+);
+
+@mixin mq($name) {
+    $max: map-get($breakpoints, $name);
+    @media (max-width: $max) {
+      @content;
+    }
+}
